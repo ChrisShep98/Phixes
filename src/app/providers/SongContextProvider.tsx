@@ -16,13 +16,13 @@ export const SongContextProvider: React.FC<{ children: React.ReactNode }> = ({
   async function fetchSongSubmissions(filterName?: string, valueName?: string) {
     if (filterName == undefined && valueName == undefined) {
       console.log("hello this condition is run");
-      const response = await fetch(`https://phavorites-express.vercel.app/submissions`);
+      const response = await fetch(`http://localhost:8000/submissions`);
       const submissions = await response.json();
       setSongSubmissions(submissions.data);
       setLoading(false);
     } else {
       const response = await fetch(
-        `https://phavorites-express.vercel.app/submissions?filter=${filterName}&value=${valueName}`
+        `http://localhost:8000/submissions?filter=${filterName}&value=${valueName}`
       );
       const submissions = await response.json();
       setSongSubmissions(submissions.data);
