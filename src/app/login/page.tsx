@@ -1,6 +1,7 @@
 import React from "react";
 import LoginForm from "@/components/LoginForm";
 import { Stack, Box } from "@mui/material";
+import GoogleLogin from "@/components/GoogleOAuth";
 
 const Register = () => {
   return (
@@ -19,6 +20,7 @@ const Register = () => {
         }}
       />
       <LoginForm />
+      <GoogleLogin />
     </Stack>
   );
 };

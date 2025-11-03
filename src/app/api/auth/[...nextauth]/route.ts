@@ -1,9 +1,14 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { loginUser } from "@/services/userServices";
+import Google from "next-auth/providers/google";
 
 const handler = NextAuth({
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       // The name to display on the sign in form (e.g. 'Sign in with...')
       name: "credentials",
@@ -45,26 +50,37 @@ const handler = NextAuth({
       return true;
     },
     // I used these two callbacks to move some values around so that user.id is available in both the token and the session objects. might come in handy. this data is accessible in the client via getToken and getSession/useSession. since a token (token.jti) and the user id are both available in the token object, we'll call getToken to get those two values and use them as arguments for the me query
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       // user is the value returned from the authorize function above
       user && (token.user = user);
-      // console.log("token", token);
-      // token {
-      //   sub: '6',
-      //   user: { id: 6 },
-      //   iat: 1676950152,
-      //   exp: 1679542152,
-      //   jti: 'cdce51a6-7d61-4e2d-9bbc-6ed288bf91a2'
-      // }
+      if (account?.provider === "google") {
+        token.isOAuth = true;
+      } else if (account?.provider === "credentials") {
+        token.isOAuth = false;
+      }
+      console.log("@@@ start of token @@@", token, "@@@ end of token@@@");
       return token;
     },
     async session({ session, token }: any) {
-      session.user = {
-        username: String(token.user.username),
-        token: token.jti,
-        createdAt: token.user.createdAt,
-        userId: token.user._id,
-      };
+      if (token.isOAuth) {
+        session.user = {
+          isOAuth: true,
+          provdier: "OAuth",
+          name: token.name,
+          googleId: token.user.id,
+          token: token.jti,
+        };
+      } else {
+        session.user = {
+          username: String(token.user.username),
+          token: token.jti,
+          createdAt: token.user.createdAt,
+          userId: token.user._id,
+          provdier: "Credentials",
+          isOAuth: false,
+        };
+      }
+      console.log(session);
       return session;
     },
   },
